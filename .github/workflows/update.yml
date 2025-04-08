@@ -1,0 +1,35 @@
+name: Update Today in Canada
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # Runs daily at 6:00 AM UTC
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install OpenAI
+        run: pip install openai
+
+      - name: Run Script
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: python .github/scripts/update_today_in_canada.py
+
+      - name: Commit and Push
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add today-in-canada.json
+          git commit -m "Update for ${{ github.event.head_commit.timestamp || 'daily update' }}" || echo "No changes"
+          git push
